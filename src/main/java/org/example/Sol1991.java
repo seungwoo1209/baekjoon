@@ -13,10 +13,10 @@ public class Sol1991 {
 
         final int N = Integer.parseInt(br.readLine());
 
-        Node[] arr = new Node[N];
+        Node1753[] arr = new Node1753[N];
         StringTokenizer st;
         for(int i=0;i<N;i++){
-            arr[i] = new Node();
+            arr[i] = new Node1753();
             arr[i].value = (char) (65 + i);
         }
 
@@ -39,39 +39,39 @@ public class Sol1991 {
         System.out.println(sb);
     }
 
-    static void preorder(Node n){
+    static void preorder(Node1753 n){
         sb.append(n.value);
         if(n.left != null) preorder(n.left);
         if(n.right != null) preorder(n.right);
     }
 
-    private static void inorder(Node n) {
+    private static void inorder(Node1753 n) {
         if(n.left != null) inorder(n.left);
         sb.append(n.value);
         if(n.right != null) inorder(n.right);
     }
 
-    private static void postorder(Node n) {
+    private static void postorder(Node1753 n) {
         if(n.left != null) postorder(n.left);
         if(n.right != null) postorder(n.right);
         sb.append(n.value);
     }
 }
-
+//
 class Node {
     public char value;
-    public Node left;
-    public Node right;
+    public Node1753 left;
+    public Node1753 right;
 
     public Node() {}
 
-    public Node(char value, Node left, Node right) {
+    public Node(char value, Node1753 left, Node1753 right) {
         this.value = value;
         this.left = left;
         this.right = right;
     }
 
-    static Node Of(char Value, Node Left, Node Right){
-        return new Node(Value, Left, Right);
+    static Node1753 Of(char Value, Node1753 Left, Node1753 Right){
+        return new Node1753(Value, Left, Right);
     }
 }
