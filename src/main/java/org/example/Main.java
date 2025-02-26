@@ -1,5 +1,6 @@
 package org.example;
 
+import javax.swing.border.CompoundBorder;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -7,84 +8,113 @@ import java.util.*;
 
 class Main {
 
-    static ArrayList<node>[] arr;
-    static Long max = 0L;
-    static boolean[] visited;
+    static int N;
+    static Long sum = 0L;
+    static boolean[] visitedRow;
+    static boolean[] visitedCol;
+    static boolean[] visitedSum;
+    static boolean[] visitedDiff;
 
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        int n = Integer.parseInt(br.readLine());
+        N = Integer.parseInt(br.readLine());
 
-        visited = new boolean[n + 1];
-        for (int i = 0; i < n + 1; i++) {
-            visited[i] = false;
+        Long start = System.nanoTime();
+        visitedRow = new boolean[N];
+        visitedCol = new boolean[N];
+        visitedSum = new boolean[2*N-1];
+        visitedDiff = new boolean[2*N-1];
+        for (int i = 0; i < N; i++) {
+            calc(0, i, 0);
         }
 
-        arr = new ArrayList[n+1];
-        for (int i = 0; i < n + 1; i++) {
-            arr[i] = new ArrayList<node>();
+        Long end = System.nanoTime();
+        System.out.println(sum);
+        System.out.println((double)(end - start) / (1000 * 1000));
+    }
+
+    static void calc(int rowindex, int colindex, int currentQueenCount) {
+        currentQueenCount++;
+        if(currentQueenCount == N){
+            sum++;
+            return;
         }
 
-        for(int i=0;i<n;i++){
-            StringTokenizer st = new StringTokenizer(br.readLine());
-            int parent = Integer.parseInt(st.nextToken());
-            int child;
-            while((child = Integer.parseInt(st.nextToken()))!=-1){
-                int weight = Integer.parseInt(st.nextToken());
-                arr[parent].add(new node(child,weight));
+        // 못가는데 표시하기
+//        for(int i=0;i<N;i++){
+//            for(int j=0;j<N;j++){
+//                boolean sameRow = (i == rowindex);
+//                boolean sameCol = (j == colindex);
+//                boolean sameSum = (i + j == rowindex + colindex);
+//                boolean sameDiff = (i - j == rowindex - colindex);
+//                if(sameRow || sameCol || sameSum || sameDiff){
+//                    if(!visited[i][j]){
+//                        visited[i][j] = true;
+//                        list.add(new Coord(i, j));
+//                    }
+//                }
+//            }
+//        }
+
+        visitedRow[rowindex] = true;
+        visitedCol[colindex] = true;
+        visitedSum[rowindex + colindex] = true;
+        visitedDiff[N-1+rowindex - colindex] = true;
+
+        List<Integer> possibleRow = new ArrayList<>();
+        for(int i = 0; i < N; i++){
+            if(!visitedRow[i]){
+                possibleRow.add(i);
+            }
+        }
+        List<Integer> possibleCol = new ArrayList<>();
+        for(int i = 0; i < N; i++){
+            if(!visitedCol[i]){
+                possibleCol.add(i);
             }
         }
 
-        Long calc = dfs(1);
-        if(max < calc){
-            max = calc;
+        if(possibleRow.size() != 0 && possibleCol.size() != 0){
+            for(int i = 0; i < possibleRow.size(); i++){
+                for(int j = 0; j < possibleCol.size(); j++){
+                    int row = possibleRow.get(i);
+                    int col = possibleCol.get(j);
+                    if(!visitedSum[row + col] && !visitedDiff[N-1 + row - col]){
+                        calc(i, j, currentQueenCount);
+                    }
+                }
+            }
         }
 
-        System.out.println(max);
+        visitedRow[rowindex] = false;
+        visitedCol[colindex] = false;
+        visitedSum[rowindex + colindex] = false;
+        visitedDiff[N-1+rowindex - colindex] = false;
+
+//        // 안간데 딱 하나만 찾기
+//        int newRow = -1;
+//        int newCol = -1;
+//        Loop:
+//        for(int i=0;i<N;i++){
+//            for(int j=0;j<N;j++){
+//                if(!visited[i][j]){
+//                    newRow = i;
+//                    newCol = j;
+//                    break Loop;
+//                }
+//            }
+//        }
 
     }
 
-    private static Long dfs(int i) {
-        visited[i] = true;
-        ArrayList<Long> results = new ArrayList<>();
-        for(int j=0;j<arr[i].size();j++){
-            node n = arr[i].get(j);
-            if(!visited[n.child]){
-                results.add(dfs(n.child) + n.weight);
-            }
-        }
-
-        if(results.isEmpty()){
-            // 자식 없으면 0
-           return 0L;
-        } else if(results.size() == 1){
-            // 자식 하나면 그거
-            return results.get(0);
-        } else {
-            // 여기서 자식 두개로 경로를 형성하는 것이 최댓값이라면
-            Collections.sort(results, Collections.reverseOrder());
-            Long currMax = results.get(0) + results.get(1);
-            if(max < currMax){
-                max = currMax;
-            }
-
-            // 자식 중에 제일 큰거
-            return results.get(0);
-        }
-
-
-    }
 
 }
 
-class node {
-    public int child;
-    public int weight;
-
-    public node(int child, int weight) {
-        this.child = child;
-        this.weight = weight;
+class Coord {
+    public int row;
+    public int col;
+    public Coord(int row, int col) {
+        this.row = row;
+        this.col = col;
     }
 }
-
-
