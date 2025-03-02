@@ -3,100 +3,99 @@ package org.example;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.StringTokenizer;
+import java.util.*;
 
 import static java.lang.Integer.MAX_VALUE;
 
 class Main {
 
-    static int N, M, X;
-    static ArrayList<Node>[] graph;
-    static ArrayList<Node>[] reverse;
-    static int[] dp;
-    static int[] dp2;
-
 
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        StringTokenizer st = new StringTokenizer(br.readLine());
-        N = Integer.parseInt(st.nextToken());
-        M = Integer.parseInt(st.nextToken());
-        X = Integer.parseInt(st.nextToken());
+        int TC = Integer.parseInt(br.readLine());
+        StringBuilder sb = new StringBuilder();
+        for(int i=0;i<TC;i++){
+            StringTokenizer st = new StringTokenizer(br.readLine());
+            int N = Integer.parseInt(st.nextToken());
+            int M = Integer.parseInt(st.nextToken());
+            int W = Integer.parseInt(st.nextToken());
 
-        graph = new ArrayList[N + 1];
-        reverse = new ArrayList[N + 1];
-        for (int i = 0; i < N + 1; i++) {
-            graph[i] = new ArrayList<Node>();
-            reverse[i] = new ArrayList<Node>();
+            HashMap<Integer, Integer>[] graph = new HashMap[N+1];
+            for(int j=0;j<=N;j++){
+                graph[j] = new HashMap<>();
+            }
+
+            for(int j=1;j<=N;j++){
+                graph[0].put(j,0);
+            }
+
+            for(int j=0;j<M;j++){
+                st = new StringTokenizer(br.readLine());
+                int v1 = Integer.parseInt(st.nextToken());
+                int v2 = Integer.parseInt(st.nextToken());
+                int weight = Integer.parseInt(st.nextToken());
+                graph[v1].merge(v2,weight,Math::min);
+                graph[v2].merge(v1,weight,Math::min);
+            }
+
+            for(int j=0;j<W;j++){
+                st = new StringTokenizer(br.readLine());
+                int from  = Integer.parseInt(st.nextToken());
+                int to = Integer.parseInt(st.nextToken());
+                int weight = Integer.parseInt(st.nextToken());
+                graph[from].merge(to,-1*weight,Math::min);
+            }
+
+            String ans = bellmanFord(graph,N,0) ? "YES" : "NO";
+            sb.append(ans + "\n");
         }
-
-        dp = new int[N +1];
-        dp2 = new int[N+1];
-
-        for(int i = 0; i< M; i++){
-            st = new StringTokenizer(br.readLine());
-            int start = Integer.parseInt(st.nextToken());
-            int end = Integer.parseInt(st.nextToken());
-            int weight = Integer.parseInt(st.nextToken());
-            graph[start].add(new Node(end, weight));
-            reverse[end].add(new Node(start, weight));
-        }
-
-        dijkstra(dp,graph);
-        dijkstra(dp2,reverse);
-
-        int max = Integer.MIN_VALUE;
-        for(int i=1;i<=N;i++){
-            if(i == X) continue;
-            max = Math.max((dp2[i] + dp[i]), max);
-        }
-        System.out.println(max);
+        System.out.println(sb);
     }
 
-    // 그냥 다익스트라
-    private static void dijkstra(int[] arr, ArrayList<Node>[] list) {
-        for(int i = 1; i<= N; i++) {
-            arr[i] = Integer.MAX_VALUE;
-        }
-        arr[X] = 0;
-
-        ArrayDeque<Integer> deque = new ArrayDeque<>();
+    static boolean bellmanFord(HashMap<Integer,Integer>[] graph,int N, int start){
+        //정점의 가중치를 초기화한다.
+        //모든 간선들에 대하여, (start, end, weight)
+        //시작점에서 start까지의 거리와 start부터 end까지의 거리의 합이
+        //시작점에서부터 end까지의 거리보다 짧다면
+        //가중치의 업데이트를 진행한다.
+        //1개의 간선을 사용한 각 노드까지의 최단 거리
+        //2개의 간선을 사용한 각 노드까지의 최단 거리
+        //3개의 간선을 사용한 각 노드까지의 최단 거리
+        //.... V-1개의 간선을 사용한 각 노드까지의 최단 거리
+        //V-1개의 간선을 사용한 각 노드까지의 최단 거리는 반드시 최단 거리임.
+        int[] dist = new int[N+1];
         for(int i=1;i<=N;i++){
-            list[i].sort(new Comparator<Node>() {
-
-                @Override
-                public int compare(Node o1, Node o2) {
-                    return o1.weight - o2.weight;
-                }
-            });
+            dist[i] = MAX_VALUE;
         }
 
-        deque.add(X);
-
-        while(!deque.isEmpty()){
-            int rm = deque.removeFirst();
-            for(int i=0;i< list[rm].size();i++){
-                Node n = list[rm].get(i);
-                if(arr[rm] + n.weight < arr[n.to]){
-                    arr[n.to] = arr[rm] + n.weight;
-                    deque.add(n.to);
+        dist[start] = 0;
+        for(int i=0;i<=N-1;i++){
+            for(int j=0;j<=N;j++){
+                if(dist[j] == MAX_VALUE) continue;
+                // 시작점에서 j번 노드로 갈 수 있는 상황
+                for (Map.Entry<Integer, Integer> entry : graph[j].entrySet()) {
+                    if (dist[j] + entry.getValue() < dist[entry.getKey()]) {
+                        dist[entry.getKey()] = dist[j] + entry.getValue();
+                    }
                 }
             }
         }
 
+        boolean flag = false;
+        loop:
+        for(int j=0;j<=N;j++){
+            if(dist[j] == MAX_VALUE) continue;
+            // 시작점에서 j번 노드로 갈 수 있는 상황
+            for (Map.Entry<Integer, Integer> entry : graph[j].entrySet()) {
+                if (dist[j] + entry.getValue() < dist[entry.getKey()]) {
+                    flag = true;
+                    break loop;
+                }
+            }
+        }
+        return flag;
     }
+
 }
 
 
-class Node {
-    public int to;
-    public int weight;
-
-    public Node(int to, int weight) {
-        this.to = to;
-        this.weight = weight;
-    }
-}
