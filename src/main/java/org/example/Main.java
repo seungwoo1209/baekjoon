@@ -3,66 +3,52 @@ package org.example;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.*;
-
-import static java.lang.Integer.MAX_VALUE;
+import java.util.HashMap;
 
 class Main {
-
+    static final long divider = 1_000_000_007;
+    static long count = 0;
+    static HashMap<Long, Long> map;
 
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        String input = br.readLine();
 
-        System.out.println(calc(input));
+        Long n = Long.parseLong(br.readLine());
+        map = new HashMap<>();
+        map.put(0L,0L);
+        map.put(1L,1L);
+        map.put(2L,1L);
+        map.put(3L,2L);
+        map.put(4L,3L);
+        map.put(5L,5L);
+
+        long start = System.nanoTime();
+        System.out.println(calc(n));
+        long end = System.nanoTime();
+//        System.out.println((end - start) / (1000.0 * 1000));
+//        System.out.println(count);
+
     }
 
-    private static String calc(String input) {
-        if(input.length() == 1){
-            return  input;
+    static long calc(long n) {
+        count++;
+//        System.out.println("calc: " + n);
+        if (map.containsKey(n)) {
+            return map.get(n);
         }
 
-        char[] array = input.toCharArray();
+        long half = n / 2;
 
-        int index = -1;
-        loop:
-        while(true){
-            Stack<Integer> braketStack = new Stack<>();
-            for (int i = array.length - 1; i >= 0; i--) {
-                if(array[i] == ')'){
-                    braketStack.push(1);
-                }
-                if(array[i] == '('){
-                    braketStack.pop();
-                }
-                //
-                if(braketStack.empty() && (array[i] == '+' || array[i] == '-')){
-                    index = i;
-                    break loop;
-                }
-            }
-
-            for (int i = array.length - 1; i >= 0; i--) {
-                if(array[i] == ')'){
-                    braketStack.push(1);
-                }
-                if(array[i] == '('){
-                    braketStack.pop();
-                }
-                //
-                if(braketStack.empty() && (array[i] == '*' || array[i] == '/')){
-                    index = i;
-                    break loop;
-                }
-            }
-
-            array = Arrays.copyOfRange(array,1,array.length - 1);
+        long p = calc(half);
+        long p_1 = calc(half - 1);
+        long result = 0L;
+        if (n % 2 == 0) {
+            result = (p * p % divider + 2 * p * p_1 % divider) % divider;
+        } else {
+            result = (2 * p * p % divider + 2 * p * p_1 % divider + p_1 * p_1 % divider) % divider;
         }
-
-        return calc(new String(Arrays.copyOfRange(array,0,index)))
-                + calc(new String(Arrays.copyOfRange(array,index+1,array.length)))
-                + array[index];
-
+        map.put(n, result);
+        return result;
     }
 
 }
@@ -71,3 +57,4 @@ class Main {
 // A*B+C*D*E
 // A*(B+C)*D*E
 // (A*B+C)*(D*E)
+
